@@ -1,7 +1,10 @@
 package org.roger.crm.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "Client")
@@ -9,8 +12,6 @@ public class Client {
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private int id;
-    @Column(name="company_id")
-    private int company_id;
     @Column(name="name")
     private String name;
     @Column(name="email")
@@ -74,14 +75,6 @@ public class Client {
         this.updated_at = updated_at;
     }
 
-    public int getCompany_id() {
-        return company_id;
-    }
-
-    public void setCompany_id(int company_id) {
-        this.company_id = company_id;
-    }
-
     public String getEmail() {
         return email;
     }
@@ -96,5 +89,19 @@ public class Client {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+
+    @ManyToOne
+    @JoinColumn(name = "company_id")
+    @JsonBackReference
+    private Company company ;
+
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
     }
 }

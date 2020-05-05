@@ -16,19 +16,19 @@ import java.util.*;
 @RestController
 public class CompanyController {
 	@Autowired
-	private CompanyRepository companyRepository ;
+	private CompanyRepository repository ;
 
 	@RequestMapping(value = "/company", method = RequestMethod.GET)
 	public Page<Company> list(
 			@RequestParam(name = "page", defaultValue = "0") Integer page,
 			@RequestParam(name = "perPage", defaultValue = "10") Integer perPage
 	) {
-		return companyRepository.findAll(PageRequest.of(page, perPage));
+		return repository.findAll(PageRequest.of(page, perPage));
 	}
 
 	@RequestMapping(value = "/company/{company_id}", method = RequestMethod.GET)
 	public Company get(@PathVariable Integer company_id) {
-		Optional<Company> repo = companyRepository.findById(company_id) ;
+		Optional<Company> repo = repository.findById(company_id) ;
 		return repo.orElse(null);
 	}
 
@@ -40,7 +40,7 @@ public class CompanyController {
 		company.setCreatedBy(authentication.getName());
 		company.setUpdatedAt(new Date());
 		company.setUpdatedBy(authentication.getName());
-		companyRepository.save(company) ;
+		repository.save(company) ;
 		Map<String, Object> res = new HashMap<>();
 		res.put("company_id", company.getId()) ;
 
@@ -52,13 +52,13 @@ public class CompanyController {
 			@PathVariable("company_id") Integer company_id,
 			@RequestBody CompanyRequest request, Authentication authentication)
 	{
-		Optional<Company> repo = companyRepository.findById(company_id) ;
+		Optional<Company> repo = repository.findById(company_id) ;
 		if(repo.isPresent()) {
 			Company company = repo.get() ;
 			BeanUtils.copyProperties(request, company);
 			company.setUpdatedAt(new Date());
 			company.setUpdatedBy(authentication.getName());
-			companyRepository.save(company) ;
+			repository.save(company) ;
 		}
 		//TODO Return 404
 		Map<String, Object> res = new HashMap<>();
@@ -69,9 +69,9 @@ public class CompanyController {
 	public Map<String, Object> delete (
 			@PathVariable("company_id") Integer company_id) {
 
-		Optional<Company> repo = companyRepository.findById(company_id) ;
+		Optional<Company> repo = repository.findById(company_id) ;
 		if(repo.isPresent()) {
-			companyRepository.deleteById(company_id);
+			repository.deleteById(company_id);
 		}
 		//TODO Return 404
 		Map<String, Object> res = new HashMap<>();
