@@ -8,6 +8,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +27,7 @@ public class ClientController {
 	private CompanyRepository companyRepository ;
 
 	@RequestMapping(value = "/client", method = RequestMethod.GET)
+	@PreAuthorize("hasAuthority('GET_CLIENT')")
 	public Page<Client> list(
 			@RequestParam(name = "page", defaultValue = "0") Integer page,
 			@RequestParam(name = "per_page", defaultValue = "10") Integer perPage,
@@ -37,12 +40,14 @@ public class ClientController {
 	}
 
 	@RequestMapping(value = "/client/{client_id}", method = RequestMethod.GET)
+	@PreAuthorize("hasAuthority('GET_CLIENT')")
 	public Client get(@PathVariable Integer client_id) {
 		Optional<Client> repo = repository.findById(client_id) ;
 		return repo.orElse(null);
 	}
 
 	@RequestMapping(value = "/client", method = RequestMethod.POST)
+	@PreAuthorize("hasAuthority('ADD_CLIENT')")
 	public Map<String, Object> add (@RequestBody ClientRequest request, Authentication authentication) {
 		Optional<Company> company = companyRepository.findById(request.getCompany_id()) ;
 		if(company.isPresent()) {
@@ -66,6 +71,7 @@ public class ClientController {
 	}
 
 	@RequestMapping(value = "/client/batch", method = RequestMethod.POST)
+	@PreAuthorize("hasAuthority('ADD_CLIENT')")
 	public Map<String, Object> batch (@RequestBody ClientBatchRequest request, Authentication authentication) {
 		Optional<Company> repo = companyRepository.findById(request.getCompany_id()) ;
 		if(repo.isPresent()) {
@@ -91,6 +97,7 @@ public class ClientController {
 
 
 	@RequestMapping(value = "/client/{client_id}", method = RequestMethod.PUT)
+	@PreAuthorize("hasAuthority('EDIT_CLIENT')")
 	public Map<String, Object> edit (
 			@PathVariable("client_id") Integer client_id,
 			@RequestBody CompanyRequest request, Authentication authentication)
@@ -109,6 +116,7 @@ public class ClientController {
 		return res ;
 	}
 	@RequestMapping(value = "/client/{client_id}", method = RequestMethod.DELETE)
+	@PreAuthorize("hasAuthority('DELETE_CLIENT')")
 	public Map<String, Object> delete (
 			@PathVariable("client_id") Integer client_id) {
 

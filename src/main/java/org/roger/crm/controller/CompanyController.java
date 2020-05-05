@@ -7,6 +7,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,7 @@ public class CompanyController {
 	private CompanyRepository repository ;
 
 	@RequestMapping(value = "/company", method = RequestMethod.GET)
+	@PreAuthorize("hasAuthority('GET_COMPANY')")
 	public Page<Company> list(
 			@RequestParam(name = "page", defaultValue = "0") Integer page,
 			@RequestParam(name = "per_page", defaultValue = "10") Integer perPage
@@ -27,12 +29,14 @@ public class CompanyController {
 	}
 
 	@RequestMapping(value = "/company/{company_id}", method = RequestMethod.GET)
+	@PreAuthorize("hasAuthority('GET_COMPANY')")
 	public Company get(@PathVariable Integer company_id) {
 		Optional<Company> repo = repository.findById(company_id) ;
 		return repo.orElse(null);
 	}
 
 	@RequestMapping(value = "/company", method = RequestMethod.POST)
+	@PreAuthorize("hasAuthority('ADD_COMPANY')")
 	public Map<String, Object> add (@RequestBody CompanyRequest request, Authentication authentication) {
 		Company company = new Company() ;
 		BeanUtils.copyProperties(request, company);
@@ -48,6 +52,7 @@ public class CompanyController {
 	}
 
 	@RequestMapping(value = "/company/{company_id}", method = RequestMethod.PUT)
+	@PreAuthorize("hasAuthority('EDIT_COMPANY')")
 	public Map<String, Object> edit (
 			@PathVariable("company_id") Integer company_id,
 			@RequestBody CompanyRequest request, Authentication authentication)
@@ -66,6 +71,7 @@ public class CompanyController {
 		return res ;
 	}
 	@RequestMapping(value = "/company/{company_id}", method = RequestMethod.DELETE)
+	@PreAuthorize("hasAuthority('DELETE_COMPANY')")
 	public Map<String, Object> delete (
 			@PathVariable("company_id") Integer company_id) {
 
