@@ -27,8 +27,12 @@ public class ClientController {
 	@RequestMapping(value = "/client", method = RequestMethod.GET)
 	public Page<Client> list(
 			@RequestParam(name = "page", defaultValue = "0") Integer page,
-			@RequestParam(name = "perPage", defaultValue = "10") Integer perPage
+			@RequestParam(name = "per_page", defaultValue = "10") Integer perPage,
+			@RequestParam(name = "company_id", required = false) Integer company_id
 	) {
+		if(company_id != null)
+			return repository.findClientsByCompany(companyRepository.getOne(company_id), PageRequest.of(page, perPage));
+
 		return repository.findAll(PageRequest.of(page, perPage));
 	}
 
@@ -60,6 +64,31 @@ public class ClientController {
 		//TODO Return 404
 		return null ;
 	}
+
+	@RequestMapping(value = "/client/batch", method = RequestMethod.POST)
+	public Map<String, Object> batch (@RequestBody ClientBatchRequest request, Authentication authentication) {
+		Optional<Company> repo = companyRepository.findById(request.getCompany_id()) ;
+		if(repo.isPresent()) {
+			Company company = repo.get() ;
+			request.getClients().forEach(clientRequest -> {
+				Client client = new Client() ;
+				BeanUtils.copyProperties(clientRequest, client);
+				client.setCreatedAt(new Date());
+				client.setCreatedBy(authentication.getName());
+				client.setUpdatedAt(new Date());
+				client.setUpdatedBy(authentication.getName());
+				client.setCompany(company);
+				repository.save(client);
+			});
+			Map<String, Object> res = new HashMap<>();
+
+			return res ;
+		}
+
+		//TODO Return 404
+		return null ;
+	}
+
 
 	@RequestMapping(value = "/client/{client_id}", method = RequestMethod.PUT)
 	public Map<String, Object> edit (

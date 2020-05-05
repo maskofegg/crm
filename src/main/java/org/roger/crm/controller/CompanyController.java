@@ -21,7 +21,7 @@ public class CompanyController {
 	@RequestMapping(value = "/company", method = RequestMethod.GET)
 	public Page<Company> list(
 			@RequestParam(name = "page", defaultValue = "0") Integer page,
-			@RequestParam(name = "perPage", defaultValue = "10") Integer perPage
+			@RequestParam(name = "per_page", defaultValue = "10") Integer perPage
 	) {
 		return repository.findAll(PageRequest.of(page, perPage));
 	}
