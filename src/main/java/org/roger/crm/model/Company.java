@@ -15,11 +15,11 @@ public class Company {
     @Column(name="address")
     private String address;
     @Column(name="created_by")
-    private int created_by;
+    private String created_by;
     @Column(name="created_at")
     private Date created_at;
     @Column(name="updated_by")
-    private int updated_by;
+    private String updated_by;
     @Column(name="updated_at")
     private Date updated_at;
 
@@ -47,11 +47,11 @@ public class Company {
         this.address = address;
     }
 
-    public int getCreatedBy() {
+    public String getCreatedBy() {
         return created_by;
     }
 
-    public void setCreatedBy(int created_by) {
+    public void setCreatedBy(String created_by) {
         this.created_by = created_by;
     }
 
@@ -63,11 +63,11 @@ public class Company {
         this.created_at = created_at;
     }
 
-    public int getUpdatedBy() {
+    public String getUpdatedBy() {
         return updated_by;
     }
 
-    public void setUpdatedBy(int updated_by) {
+    public void setUpdatedBy(String updated_by) {
         this.updated_by = updated_by;
     }
 

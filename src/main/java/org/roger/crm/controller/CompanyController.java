@@ -3,18 +3,18 @@ package org.roger.crm.controller;
 import org.roger.crm.model.Company;
 import org.roger.crm.model.CompanyRepository;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
+@CrossOrigin
 @RestController
 public class CompanyController {
-	@Autowired
-	private HttpServletRequest request;
 	@Autowired
 	private CompanyRepository companyRepository ;
 
@@ -33,10 +33,13 @@ public class CompanyController {
 	}
 
 	@RequestMapping(value = "/company", method = RequestMethod.POST)
-	public Map<String, Object> add (@RequestBody Company company) {
+	public Map<String, Object> add (@RequestBody CompanyRequest request, Authentication authentication) {
+		Company company = new Company() ;
+		BeanUtils.copyProperties(request, company);
 		company.setCreatedAt(new Date());
+		company.setCreatedBy(authentication.getName());
 		company.setUpdatedAt(new Date());
-
+		company.setUpdatedBy(authentication.getName());
 		companyRepository.save(company) ;
 		Map<String, Object> res = new HashMap<>();
 		res.put("company_id", company.getId()) ;
@@ -47,14 +50,14 @@ public class CompanyController {
 	@RequestMapping(value = "/company/{company_id}", method = RequestMethod.PUT)
 	public Map<String, Object> edit (
 			@PathVariable("company_id") Integer company_id,
-			@RequestBody Company company1)
+			@RequestBody CompanyRequest request, Authentication authentication)
 	{
 		Optional<Company> repo = companyRepository.findById(company_id) ;
 		if(repo.isPresent()) {
 			Company company = repo.get() ;
+			BeanUtils.copyProperties(request, company);
 			company.setUpdatedAt(new Date());
-			company.setName(company1.getName());
-			company.setAddress(company1.getAddress());
+			company.setUpdatedBy(authentication.getName());
 			companyRepository.save(company) ;
 		}
 		//TODO Return 404
@@ -70,6 +73,7 @@ public class CompanyController {
 		if(repo.isPresent()) {
 			companyRepository.deleteById(company_id);
 		}
+		//TODO Return 404
 		Map<String, Object> res = new HashMap<>();
 
 		return res ;

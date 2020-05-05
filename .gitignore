@@ -1,2 +1,4 @@
 /.idea/
 /CRM.iml
+/target/
+/db.trace.db
