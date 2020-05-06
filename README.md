@@ -1,2 +1,22 @@
+Simple CRM Service
+===
+## Build from
+```Spring Boot + H2```
+## Maven Plugin
+1. spring-boot-starter-data-jpa
+```Use for database ORM```
+2. spring-boot-starter-security
+```Use for token issue & AA```
+3. spring-boot-starter-test
+```Use for auto testing```
+## APIs
+All is in postman, import all json into postman then you can see.
 
-docker run -d -p 1521:1521 -p 81:81 -v $PWD/db:/opt/h2-data -e H2_OPTIONS='-ifNotExists' --name=crm-db oscarfonts/h2
+## Request Format
+Build with RESTFUL, put every params in request body with 
+
+``` Content-Type: application/json ```
+
+And Remember to login before using API
+
+``` Authorization: Bearer {token}```
