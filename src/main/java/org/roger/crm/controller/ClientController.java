@@ -8,42 +8,64 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @CrossOrigin
 @RestController
 public class ClientController {
+	private final Map<String, Object> res = new HashMap<>() ;
 	@Autowired
 	private ClientRepository repository ;
 	@Autowired
 	private CompanyRepository companyRepository ;
 
+	ClientController(){
+		res.put("status", true) ;
+	}
+
 	@RequestMapping(value = "/client", method = RequestMethod.GET)
 	@PreAuthorize("hasAuthority('GET_CLIENT')")
-	public Page<Client> list(
+	public Map<String, Object> list(
 			@RequestParam(name = "page", defaultValue = "0") Integer page,
 			@RequestParam(name = "per_page", defaultValue = "10") Integer perPage,
 			@RequestParam(name = "company_id", required = false) Integer company_id
 	) {
-		if(company_id != null)
-			return repository.findClientsByCompany(companyRepository.getOne(company_id), PageRequest.of(page, perPage));
-
-		return repository.findAll(PageRequest.of(page, perPage));
+		try {
+			Page<Client> clients;
+			if (company_id != null)
+				clients = repository.findClientsByCompany(companyRepository.getOne(company_id), PageRequest.of(page, perPage));
+			else
+				clients = repository.findAll(PageRequest.of(page, perPage));
+			res.put("page", page);
+			res.put("per_page", perPage);
+			res.put("total", repository.count());
+			List<Client> data = new LinkedList<>();
+			for (Client client : clients) {
+				data.add(client);
+			}
+			res.put("data", data);
+		} catch (Exception e) {
+			res.put("status", false) ;
+			res.put("message", e.getMessage()) ;
+		}
+		return res ;
 	}
 
 	@RequestMapping(value = "/client/{client_id}", method = RequestMethod.GET)
 	@PreAuthorize("hasAuthority('GET_CLIENT')")
-	public Client get(@PathVariable Integer client_id) {
-		Optional<Client> repo = repository.findById(client_id) ;
-		return repo.orElse(null);
+	public Map<String, Object> get(@PathVariable Integer client_id) {
+		try {
+			Client client = repository.getOne(client_id) ;
+			res.put("data", client);
+		} catch (Exception e) {
+			res.put("status", false) ;
+			res.put("message", e.getMessage()) ;
+		}
+		return res ;
 	}
 
 	@RequestMapping(value = "/client", method = RequestMethod.POST)
@@ -60,14 +82,13 @@ public class ClientController {
 
 			client.setCompany(company.get());
 			repository.save(client);
-			Map<String, Object> res = new HashMap<>();
-			res.put("client_id", client.getId()) ;
+			res.put("data", client.getId()) ;
 
-			return res ;
+		} else {
+			res.put("status", false) ;
+			res.put("message", "Cannot find company: " + request.getCompany_id()) ;
 		}
-
-		//TODO Return 404
-		return null ;
+		return res ;
 	}
 
 	@RequestMapping(value = "/client/batch", method = RequestMethod.POST)
@@ -76,6 +97,7 @@ public class ClientController {
 		Optional<Company> repo = companyRepository.findById(request.getCompany_id()) ;
 		if(repo.isPresent()) {
 			Company company = repo.get() ;
+			List<Integer> data = new LinkedList<>() ;
 			request.getClients().forEach(clientRequest -> {
 				Client client = new Client() ;
 				BeanUtils.copyProperties(clientRequest, client);
@@ -85,14 +107,15 @@ public class ClientController {
 				client.setUpdatedBy(authentication.getName());
 				client.setCompany(company);
 				repository.save(client);
+				data.add(client.getId()) ;
 			});
-			Map<String, Object> res = new HashMap<>();
+			res.put("data", data) ;
 
-			return res ;
+		} else {
+			res.put("status", false) ;
+			res.put("message", "Cannot find company: " + request.getCompany_id()) ;
 		}
-
-		//TODO Return 404
-		return null ;
+		return res ;
 	}
 
 
@@ -109,10 +132,11 @@ public class ClientController {
 			client.setUpdatedAt(new Date());
 			client.setUpdatedBy(authentication.getName());
 			repository.save(client) ;
+			res.put("data", client_id) ;
+		} else {
+			res.put("status", false) ;
+			res.put("message", "Cannot find client: " + client_id) ;
 		}
-		//TODO Return 404
-		Map<String, Object> res = new HashMap<>();
-
 		return res ;
 	}
 	@RequestMapping(value = "/client/{client_id}", method = RequestMethod.DELETE)
@@ -123,10 +147,11 @@ public class ClientController {
 		Optional<Client> repo = repository.findById(client_id) ;
 		if(repo.isPresent()) {
 			repository.deleteById(client_id);
+			res.put("data", client_id) ;
+		} else {
+			res.put("status", false) ;
+			res.put("message", "Cannot find client: " + client_id) ;
 		}
-		//TODO Return 404
-		Map<String, Object> res = new HashMap<>();
-
 		return res ;
 	}
 }

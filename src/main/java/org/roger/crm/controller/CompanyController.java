@@ -1,5 +1,6 @@
 package org.roger.crm.controller;
 
+import org.roger.crm.model.Client;
 import org.roger.crm.model.Company;
 import org.roger.crm.model.CompanyRepository;
 
@@ -16,23 +17,48 @@ import java.util.*;
 @CrossOrigin
 @RestController
 public class CompanyController {
+	private final Map<String, Object> res = new HashMap<>() ;
 	@Autowired
 	private CompanyRepository repository ;
 
+	CompanyController(){
+		res.put("status", true) ;
+	}
+
 	@RequestMapping(value = "/company", method = RequestMethod.GET)
 	@PreAuthorize("hasAuthority('GET_COMPANY')")
-	public Page<Company> list(
+	public Map<String, Object> list(
 			@RequestParam(name = "page", defaultValue = "0") Integer page,
 			@RequestParam(name = "per_page", defaultValue = "10") Integer perPage
 	) {
-		return repository.findAll(PageRequest.of(page, perPage));
+		try {
+			Page<Company> companies = repository.findAll(PageRequest.of(page, perPage));
+			res.put("page", page);
+			res.put("per_page", perPage);
+			res.put("total", repository.count());
+			List<Company> data = new LinkedList<>();
+			for (Company company : companies) {
+				data.add(company);
+			}
+			res.put("data", data);
+		} catch (Exception e) {
+			res.put("status", false) ;
+			res.put("message", e.getMessage()) ;
+		}
+		return res ;
 	}
 
 	@RequestMapping(value = "/company/{company_id}", method = RequestMethod.GET)
 	@PreAuthorize("hasAuthority('GET_COMPANY')")
-	public Company get(@PathVariable Integer company_id) {
-		Optional<Company> repo = repository.findById(company_id) ;
-		return repo.orElse(null);
+	public Map<String, Object> get(@PathVariable Integer company_id) {
+		try {
+			Company company = repository.getOne(company_id) ;
+			res.put("data", company);
+		} catch (Exception e) {
+			res.put("status", false) ;
+			res.put("message", e.getMessage()) ;
+		}
+		return res ;
 	}
 
 	@RequestMapping(value = "/company", method = RequestMethod.POST)
@@ -45,8 +71,7 @@ public class CompanyController {
 		company.setUpdatedAt(new Date());
 		company.setUpdatedBy(authentication.getName());
 		repository.save(company) ;
-		Map<String, Object> res = new HashMap<>();
-		res.put("company_id", company.getId()) ;
+		res.put("data", company.getId()) ;
 
 		return res ;
 	}
@@ -64,10 +89,11 @@ public class CompanyController {
 			company.setUpdatedAt(new Date());
 			company.setUpdatedBy(authentication.getName());
 			repository.save(company) ;
+			res.put("data", company.getId()) ;
+		} else {
+			res.put("status", false) ;
+			res.put("message", "Cannot find company: " + company_id) ;
 		}
-		//TODO Return 404
-		Map<String, Object> res = new HashMap<>();
-
 		return res ;
 	}
 	@RequestMapping(value = "/company/{company_id}", method = RequestMethod.DELETE)
@@ -78,10 +104,11 @@ public class CompanyController {
 		Optional<Company> repo = repository.findById(company_id) ;
 		if(repo.isPresent()) {
 			repository.deleteById(company_id);
+			res.put("data", company_id) ;
+		} else {
+			res.put("status", false) ;
+			res.put("message", "Cannot find company: " + company_id) ;
 		}
-		//TODO Return 404
-		Map<String, Object> res = new HashMap<>();
-
 		return res ;
 	}
 }
